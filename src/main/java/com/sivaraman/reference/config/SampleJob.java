@@ -1,10 +1,12 @@
 package com.sivaraman.reference.config;
 
+import com.sivaraman.reference.listener.FirstJobListener;
 import com.sivaraman.reference.service.SecondTasklet;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +25,15 @@ public class SampleJob {
     @Autowired
     private SecondTasklet secondTasklet;
 
+    @Autowired
+    private FirstJobListener firstJobListener;
+
     @Bean
     public Job firstJob(){
-        return jobBuilderFactory.get("First job").start(firstStep()).next(secondStep()).build();
+        return jobBuilderFactory.get("First job")
+//                .incrementer(new RunIdIncrementer()) // comment to avoid multiple execution
+                .listener(firstJobListener)
+                .start(firstStep()).next(secondStep()).build();
     }
 
     @Bean
