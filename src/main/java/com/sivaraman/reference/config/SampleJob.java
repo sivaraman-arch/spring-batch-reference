@@ -1,6 +1,7 @@
 package com.sivaraman.reference.config;
 
 import com.sivaraman.reference.listener.FirstJobListener;
+import com.sivaraman.reference.listener.FirstStepListener;
 import com.sivaraman.reference.service.SecondTasklet;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -28,6 +29,9 @@ public class SampleJob {
     @Autowired
     private FirstJobListener firstJobListener;
 
+    @Autowired
+    private FirstStepListener firstStepListener;
+
     @Bean
     public Job firstJob(){
         return jobBuilderFactory.get("First job")
@@ -38,7 +42,7 @@ public class SampleJob {
 
     @Bean
     public Step firstStep(){
-        return stepBuilderFactory.get("First step").tasklet(firstTasklet()).build();
+        return stepBuilderFactory.get("First step").tasklet(firstTasklet()).listener(firstStepListener).build();
     }
 
     @Bean
