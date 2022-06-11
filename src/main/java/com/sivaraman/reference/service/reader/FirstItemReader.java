@@ -24,14 +24,11 @@ public class FirstItemReader implements ItemReader<Integer> {
         log.info("Inside item reader");
         Integer item;
 
-        if(itr < this.records.size()){
+        if(itr < this.records.size() - 1){
             itr +=1;
             item = records.get(itr);
             return item;
         }
-
         return null;
-
-
     }
 }
