@@ -1,7 +1,7 @@
 package com.sivaraman.reference.controller;
 
-
 import com.sivaraman.reference.model.JobExecutionRequest;
+import com.sivaraman.reference.service.JobExecutionLauncher;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -25,41 +25,48 @@ import java.util.Map;
 @Slf4j
 public class JobController {
 
-    @Autowired
-    JobLauncher jobLauncher;
+  @Autowired JobLauncher jobLauncher;
+  @Autowired JobExecutionLauncher jobExecutionLauncher;
 
-    @Autowired
-    Job firstJob;
+  @Autowired Job firstJob;
 
-    @GetMapping("/start/{jobName}")
-    public String start(@PathVariable String jobName){
-        log.info("Received request to launch job : {}", jobName);
-        Map<String, JobParameter> paramMap = new HashMap<>();
+  @GetMapping("/start/{jobName}")
+  public String start(@PathVariable String jobName) {
+    log.info("Received request to launch job : {}", jobName);
+    Map<String, JobParameter> paramMap = new HashMap<>();
 
-        paramMap.put("executionTime", new JobParameter(Instant.now().toString()));
+    paramMap.put("executionTime", new JobParameter(Instant.now().toString()));
 
-        JobParameters params = new JobParameters(paramMap);
-        try {
-            jobLauncher.run(firstJob, params);
-        } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
-            e.printStackTrace();
-            log.info("Error while executing job : {}", e.getMessage());
-            return jobName + "failed ...";
-        }
-        return jobName + " started ...";
+    JobParameters params = new JobParameters(paramMap);
+    try {
+      jobLauncher.run(firstJob, params);
+    } catch (JobExecutionAlreadyRunningException
+        | JobRestartException
+        | JobInstanceAlreadyCompleteException
+        | JobParametersInvalidException e) {
+      e.printStackTrace();
+      log.info("Error while executing job : {}", e.getMessage());
+      return jobName + "failed ...";
     }
+    return jobName + " started ...";
+  }
 
-    @SneakyThrows
-    @PostMapping("/start/{jobName}")
-    public String startExecution(@PathVariable String jobName, @RequestBody List<JobExecutionRequest> jobExecutionRequestList){
-        Map<String, JobParameter> requestMap = new HashMap<>();
+  @SneakyThrows
+  @PostMapping("/start/{jobName}")
+  public String startExecution(
+      @PathVariable String jobName,
+      @RequestBody List<JobExecutionRequest> jobExecutionRequestList) {
+    Map<String, JobParameter> requestMap = new HashMap<>();
 
-        jobExecutionRequestList.forEach(jobExecutionRequest -> {
-            requestMap.put(jobExecutionRequest.getKey(), new JobParameter(jobExecutionRequest.getValue()));
+    jobExecutionRequestList.forEach(
+        jobExecutionRequest -> {
+          requestMap.put(
+              jobExecutionRequest.getKey(), new JobParameter(jobExecutionRequest.getValue()));
         });
 
-        jobLauncher.run(firstJob, new JobParameters(requestMap));
-        return "Job started ...";
-    }
+    jobExecutionLauncher.run(jobName, new JobParameters(requestMap)); // this is async
 
+//    jobLauncher.run(firstJob, new JobParameters(requestMap));
+    return "Job started ...";
+  }
 }
